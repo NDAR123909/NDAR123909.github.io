@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Noah Riego</title>
+  <meta name="description" content="Noah Riego, applied physics student at the University of Arizona. Research in nonlinear dynamics, chaos, and reservoir computing.">
+  <link rel="canonical" href="https://ndar123909.github.io/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Noah Riego">
+  <meta property="og:description" content="Applied physics student at the University of Arizona. Research in nonlinear dynamics, chaos, and reservoir computing.">
+  <meta property="og:url" content="https://ndar123909.github.io/">
+  <meta property="og:image" content="https://ndar123909.github.io/assets/img/headshot-640.jpg">
+  <meta property="og:image:alt" content="Portrait of Noah Riego">
+  <meta name="twitter:card" content="summary">
+
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/assets/fonts/newsreader-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="layout">
+    <header class="sidebar">
+      <img class="headshot" src="/assets/img/headshot-320.jpg" srcset="/assets/img/headshot-320.jpg 320w, /assets/img/headshot-640.jpg 640w" sizes="9rem" width="320" height="320" alt="Portrait of Noah Riego">
+      <p class="role">Applied Physics, University of Arizona</p>
+      <nav aria-label="Site">
+        <ul>
+          <li><a href="/" aria-current="page">Home</a></li>
+          <li><a href="/research/lorenz-esn/">Research</a></li>
+          <li><a href="/files/Riego_CV.pdf">CV (PDF)</a></li>
+        </ul>
+      </nav>
+      <ul class="contact">
+        <li><a href="mailto:noahriego@arizona.edu">noahriego@arizona.edu</a> <span class="kind">University</span></li>
+        <li><a href="mailto:noahriego2005@gmail.com">noahriego2005@gmail.com</a> <span class="kind">Personal</span></li>
+        <li><a href="https://github.com/NDAR123909">GitHub</a></li>
+        <li><a href="https://www.linkedin.com/in/noah-riego-b32a02276/">LinkedIn</a></li>
+      </ul>
+    </header>
+
+    <main id="main">
+      <h1>Noah Riego</h1>
+
+      <p class="lede">I'm an applied physics student at the University of Arizona, in the W.A. Franke Honors College. I work on nonlinear dynamics and chaos using computation and data.</p>
+
+      <p>I'm minoring in Statistics &amp; Data Science, and I expect to graduate in May 2028. After that I plan to do a PhD, then go into industry research.</p>
+
+      <h2>Research interests</h2>
+      <ul>
+        <li>Nonlinear dynamics and chaos: bifurcation analysis, the Lorenz system</li>
+        <li>Stochastic processes: Ornstein–Uhlenbeck and AR models, Kalman filtering</li>
+        <li>Reservoir computing and machine learning for dynamical systems</li>
+        <li>Statistical inference and reproducible scientific computing</li>
+      </ul>
+
+      <h2>Research</h2>
+
+      <article class="entry">
+        <h3><a href="/research/lorenz-esn/">Quantifying the effect of training-sample range, density, and position on bifurcation extrapolation in a parameter-aware echo state network</a></h3>
+        <p class="meta">Sole author. Manuscript in preparation for the Journal of Undergraduate Research in Physics and Astronomy.</p>
+        <p>I trained a reservoir computer on the Lorenz system at a few values of ρ and measured how far past its training window it stays accurate. Adding samples stops helping after three. Widening the window helps, but not monotonically.</p>
+      </article>
+
+      <article class="entry">
+        <h3>Finding Research Made Easy (FRME)</h3>
+        <p class="meta">Undergraduate Research Assistant, Vertically Integrated Projects, University of Arizona. Feb 2025 – May 2026.</p>
+        <p>A student-led study comparing a standard faculty directory with a research-interest search tool for finding mentors. I built the evaluation testbed and data-collection pipeline.</p>
+      </article>
+
+      <h2>Other projects</h2>
+
+      <article class="project">
+        <h3>ou-statarb</h3>
+        <p class="meta">Statistical arbitrage research framework. Python, sole author.</p>
+        <p>A pairs-trading research library that models the spread between two cointegrated stocks as an Ornstein–Uhlenbeck process, with a Kalman-filtered hedge ratio and a backtester that charges trading costs. A naive scan of 465 pairs flags 74 as cointegrated where about 23 are expected by chance, so pair selection uses Benjamini–Hochberg FDR control. Over 19 walk-forward folds on 31 DJIA stocks (2006–2017), I report the median fold's out-of-sample Sharpe, 0.18, not the best backtest.</p>
+        <p class="links"><a href="https://github.com/NDAR123909/ou-statarb">Repository</a></p>
+      </article>
+
+      <article class="project">
+        <h3>ENSO climate data pipeline</h3>
+        <p class="award">1st place, 2026 UA Data Visualization Challenge</p>
+        <p>An ETL pipeline that brings five federal climate and hydrology sources (NOAA, NCEP/NCAR, USGS, NASA) into a seven-table PostgreSQL star schema. It feeds a D3.js visualization of 75 years of El Niño and La Niña events against river discharge in the western U.S.</p>
+        <p class="links"><a href="https://github.com/NDAR123909/enso-visualization">Repository</a></p>
+      </article>
+
+      <article class="project">
+        <h3>LTP Liquidity Arena 2026</h3>
+        <p class="meta">Track A finalist. Live-capital algorithmic trading competition, Jul 2026 – present.</p>
+        <p>An autonomous agent trading live capital on Binance USDT-margined perpetuals, running OU mean reversion on FDR-screened cointegrated pairs from ou-statarb. Risk controls include volatility-targeted sizing, a kill switch at 12% off peak, and a 2× NAV gross cap. In Phase 1 it placed 6th of 30 advancing teams with the board's highest Sharpe, 4.86: +3.8% return and 3.7% max drawdown over 32 days.</p>
+        <p class="links"><a href="https://github.com/NDAR123909/ou-statarb">Repository (ou-statarb, the engine behind the agent)</a></p>
+      </article>
+
+      <footer class="site-footer">
+        <p>© 2026 Noah Riego</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
