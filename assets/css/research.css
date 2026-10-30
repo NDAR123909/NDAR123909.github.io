@@ -1,0 +1,70 @@
+/* Attractor animation on the research page */
+.attractor-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  font-family: var(--sans);
+}
+
+.rho-choices { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+.attractor button {
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  min-height: 2.5rem;
+  padding: 0.3rem 0.8rem;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.attractor button:hover { border-color: var(--ink-soft); }
+.attractor button[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.attractor .play { min-width: 5.5rem; }
+
+.attractor-view {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  touch-action: pan-y; /* vertical swipes still scroll the page on touch screens */
+  cursor: grab;
+  border-radius: 2px;
+}
+.attractor-view:active { cursor: grabbing; }
+
+.pane { min-width: 0; }
+.pane-label {
+  margin: 0 0 0.25rem;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+}
+.pane canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 0.9;
+  border-top: 1px solid var(--rule);
+}
+
+.attractor .status {
+  min-height: 1.5em;
+  margin: 0.5rem 0 0;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--ink);
+}
+
+/* Without data the controls do nothing, so hide them until it loads */
+.attractor:not(.is-ready) .attractor-controls,
+.attractor:not(.is-ready) .attractor-view { display: none; }
+
+@media (max-width: 30rem) {
+  .attractor-view { grid-template-columns: 1fr; }
+}
