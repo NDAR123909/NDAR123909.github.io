@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bifurcation extrapolation with echo state networks | Noah Riego</title>
+  <meta name="description" content="How far past its training window can a parameter-aware echo state network reconstruct the Lorenz bifurcation diagram? Results on training range, sample density, and window position.">
+  <link rel="canonical" href="https://ndar123909.github.io/research/lorenz-esn/">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Bifurcation extrapolation with echo state networks">
+  <meta property="og:description" content="How far past its training window a parameter-aware echo state network stays accurate on the Lorenz system, and what controls it.">
+  <meta property="og:url" content="https://ndar123909.github.io/research/lorenz-esn/">
+  <meta property="og:image" content="https://ndar123909.github.io/assets/img/fig2-attractors.jpg">
+  <meta property="og:image:alt" content="True Lorenz attractors in grey above the network's predicted attractors in red, at three values of rho.">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/assets/fonts/newsreader-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="stylesheet" href="/assets/css/research.css">
+  <script src="/assets/js/attractors.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="layout">
+    <header class="sidebar">
+      <img class="headshot" src="/assets/img/headshot-320.jpg" srcset="/assets/img/headshot-320.jpg 320w, /assets/img/headshot-640.jpg 640w" sizes="9rem" width="320" height="320" alt="Portrait of Noah Riego">
+      <a class="name" href="/">Noah Riego</a>
+      <p class="role">Applied Physics, University of Arizona</p>
+      <nav aria-label="Site">
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/research/lorenz-esn/" aria-current="page">Research</a></li>
+          <li><a href="/files/Riego_CV.pdf">CV (PDF)</a></li>
+        </ul>
+      </nav>
+      <ul class="contact">
+        <li><a href="mailto:noahriego@arizona.edu">noahriego@arizona.edu</a> <span class="kind">University</span></li>
+        <li><a href="mailto:noahriego2005@gmail.com">noahriego2005@gmail.com</a> <span class="kind">Personal</span></li>
+        <li><a href="https://github.com/NDAR123909">GitHub</a></li>
+        <li><a href="https://www.linkedin.com/in/noah-riego-b32a02276/">LinkedIn</a></li>
+      </ul>
+    </header>
+
+    <main id="main">
+      <article>
+        <h1>Quantifying the effect of training-sample range, density, and position on bifurcation extrapolation in a parameter-aware echo state network</h1>
+        <p class="meta">Noah D. Riego, sole author. Manuscript in preparation for the Journal of Undergraduate Research in Physics and Astronomy.<br>
+          <a href="https://github.com/NDAR123909/reservoir-lorenz-regime-transitions">Code, data, and figures on GitHub</a></p>
+
+        <p class="lede">If a neural network learns the Lorenz system at only a few values of its parameter ρ, how far past those values can it still reproduce the right behavior? I held the network and the amount of training data fixed and changed three things about the training set: how wide a range of ρ it covers, how many values of ρ it samples, and where it sits relative to a bifurcation.</p>
+
+        <h2>The short version</h2>
+        <ul>
+          <li>How far the network reaches depends on where the edge of the training window sits, not on how densely the window is filled.</li>
+          <li>Past three samples, adding more stops helping. Reach stays at 0.30 in ρ from 3 samples up to 21.</li>
+          <li>Widening the window raises the highest ρ the network gets right, from 31.2 to 35.5, but the distance it reaches past its own edge goes down and then back up.</li>
+          <li>Wherever I placed the window, the network predicted the chaotic attractor would collapse at ρ = 24.10. The true Hopf bifurcation is at 24.74. The predicted point sits instead near 24.06, where the chaotic attractor itself stops existing.</li>
+        </ul>
+
+        <h2>Background</h2>
+
+        <h3>The Lorenz system</h3>
+        <p>The Lorenz equations are a three-variable model that turns chaotic for some parameter values:</p>
+        <p class="eq" role="math" aria-label="x dot equals sigma times y minus x; y dot equals x times rho minus z, minus y; z dot equals x y minus beta z">
+          <var>ẋ</var> = σ(<var>y</var> − <var>x</var>),&ensp;
+          <var>ẏ</var> = <var>x</var>(ρ − <var>z</var>) − <var>y</var>,&ensp;
+          <var>ż</var> = <var>xy</var> − β<var>z</var>
+        </p>
+        <p>I kept σ = 10 and β = 8/3 at their standard values and varied only ρ. Two values of ρ matter throughout. At ρ ≈ 24.74 there is a subcritical Hopf bifurcation. At ρ ≈ 24.06, the coexistence onset, the chaotic attractor ends. Between the two values, the chaotic attractor and a pair of stable fixed points coexist, so which one a trajectory ends up on depends on where it starts. For that reason I placed every training window above the Hopf point.</p>
+
+        <h3>Echo state networks</h3>
+        <p>An echo state network is a type of reservoir computer: a large recurrent network whose internal weights are random and never trained. Only a linear readout on top is fit to data, which makes training cheap. The parameter-aware version, from Kong et al., adds one more input that carries the value of ρ. That extra channel is what lets a network trained in one regime say something about regimes it never saw.</p>
+        <p>The reservoir state <var class="bold">r</var> updates as</p>
+        <p class="eq" role="math" aria-label="r at t plus delta t equals one minus alpha times r at t, plus alpha times tanh of W r times r at t plus W in times u at t plus b">
+          <var class="bold">r</var>(<var>t</var> + Δ<var>t</var>) = (1 − α) <var class="bold">r</var>(<var>t</var>) + α tanh[<var class="bold">W</var><sub>r</sub> <var class="bold">r</var>(<var>t</var>) + <var class="bold">W</var><sub>in</sub> <var class="bold">u</var>(<var>t</var>) + <var class="bold">b</var>]
+        </p>
+        <p>where <var class="bold">W</var><sub>r</sub> is a fixed sparse random matrix, α is the leak rate, and the input <var class="bold">u</var> holds the three standardized Lorenz coordinates plus ρ, scaled separately. The readout is ridge regression, solved in closed form:</p>
+        <p class="eq" role="math" aria-label="W out equals Y R transpose times the inverse of R R transpose plus lambda I">
+          <var class="bold">W</var><sub>out</sub> = <var class="bold">Y</var><var class="bold">R</var><sup>⊤</sup>(<var class="bold">R</var><var class="bold">R</var><sup>⊤</sup> + λ<var class="bold">I</var>)<sup>−1</sup>
+        </p>
+        <p>Here <var class="bold">R</var> collects the reservoir states over the training set and <var class="bold">Y</var> the one-step-ahead targets. The network has 500 nodes, mean in-degree 6, spectral radius 0.6, α = 1.0, state scaling 0.10, parameter scaling 0.1, bias 0.10, ridge parameter 10<sup>−6</sup>, and a 1000-step washout. None of these change between experiments.</p>
+
+        <h3>Cold runs and how reach is measured</h3>
+        <p>To test the network at a value of ρ it never trained on, I give it that ρ and a short primer from the nearest training value, then let it run freely on its own output. It never sees a true trajectory at the target ρ. I call this a cold run.</p>
+        <p>A cold run is scored by its valid prediction time: how long, in Lyapunov times, before the normalized error first passes 0.4. To get the extrapolation distance Δρ, I step outward from the edge of the training window in increments of 0.1 and find the longest unbroken stretch where the network stays acceptable. Inside the chaotic band, acceptable means a valid prediction time at least half of its in-window value, with the regime still labeled chaotic. Across the Hopf point, only whether the predicted regime matches the true one counts.</p>
+        <p>Two numbers come out of this. <em>Marginal reach</em> is Δρ itself. <em>Absolute ceiling</em> is the largest ρ reconstructed correctly. Each configuration was run on 32 random reservoirs, and I report medians with bootstrap interquartile bands. Total training length is fixed at 120,000 steps, so when the number of samples changes, the length per sample adjusts. Any change in reach comes from how the data is arranged, not how much of it there is.</p>
+
+        <h2>Results</h2>
+
+        <h3>The attractor at values the network never saw</h3>
+
+        <figure class="wide attractor" id="attractors" data-attractors data-src="/assets/data/attractors.json">
+          <div class="attractor-controls">
+            <div class="rho-choices" role="group" aria-label="Value of ρ">
+              <button type="button" data-rho aria-pressed="true" data-label="ρ = 25: just above the Hopf point, inside the training range.">ρ = 25</button>
+              <button type="button" data-rho aria-pressed="false" data-label="ρ = 28: between training values.">ρ = 28</button>
+              <button type="button" data-rho aria-pressed="false" data-label="ρ = 31: beyond the top of the training range.">ρ = 31</button>
+            </div>
+            <button type="button" class="play" data-play>Play</button>
+          </div>
+
+          <div class="attractor-view" data-view tabindex="0" role="group" aria-label="Attractor view. Drag, or use the arrow keys, to rotate both plots together.">
+            <div class="pane">
+              <p class="pane-label"><span class="key key-truth">True Lorenz system</span></p>
+              <canvas role="img" aria-label="True Lorenz attractor at the selected value of ρ, traced over time."></canvas>
+            </div>
+            <div class="pane">
+              <p class="pane-label"><span class="key key-network">Network, cold run</span></p>
+              <canvas role="img" aria-label="The echo state network's free-running attractor at the same value of ρ, traced over time."></canvas>
+            </div>
+          </div>
+          <p class="status" data-status aria-live="polite"></p>
+
+          <figcaption>
+            <strong>Paper Figure 2, animated.</strong> The <span class="key key-truth">true system</span> and the <span class="key key-network">network</span> at three values of ρ that were not in training. One reservoir trained on ρ ∈ {24.56, 26.06, 27.56, 29.06}. Drag the plots, or focus them and use the arrow keys, to rotate. The comparison is about the shape of the attractor, not the path: once past its valid prediction time, a free-running network drifts away from the true trajectory point by point, by construction. These are the same runs as the paper figure, from the script in the repository. <a href="/assets/img/fig2-attractors.jpg">Static version</a>.
+          </figcaption>
+          <noscript>
+            <img src="/assets/img/fig2-attractors.jpg" width="1200" height="780" alt="Six 3D plots. Top row in grey: the true Lorenz attractor at rho 25, 28, and 31. Bottom row in red: the network's attractor at the same values. Each pair has the same two-lobed shape.">
+          </noscript>
+        </figure>
+
+        <h3>Reproducing the bifurcation diagram</h3>
+        <p>First I checked that the setup reproduces the published parameter-aware result. I trained on ρ ∈ {24.56, 26.06, 27.56, 29.06} and ran cold across ρ ∈ [24, 32].</p>
+
+        <table class="numbers">
+          <thead>
+            <tr><th scope="col">Check</th><th scope="col">Result</th><th scope="col">Bar</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Regime label correct at every test value</td><td class="num">100%</td><td class="num">≥ 95%</td></tr>
+            <tr><td>z-maxima amplitude error, ρ ≥ 24.74 (fraction of z-range)</td><td class="num">2.29%</td><td class="num">≤ 5%</td></tr>
+            <tr><td>Largest Lyapunov exponent agreement</td><td class="num">6.1%</td><td class="num">≤ 10%</td></tr>
+          </tbody>
+        </table>
+
+        <p>Amplitude is scored only above the Hopf point. Below it, the two attractors coexist, so the single-initial-condition ground truth jumps between the chaotic and fixed-point branches from one ρ to the next while the network stays on the chaotic branch. Over the full grid the error is 7.61%, and nearly all of it comes from eight such points.</p>
+
+        <figure class="narrow">
+          <img src="/assets/img/fig1-bifurcation.png" width="990" height="600" loading="lazy" alt="Bifurcation diagram: successive z-maxima against rho from 24 to 32. The network's red points overlay the grey ground truth across the whole range, both rising with rho.">
+          <figcaption><strong>Figure 1.</strong> Predicted successive z-maxima from cold runs in red, ground truth in grey. Dotted lines mark the four training values, the dashed line is the Hopf bifurcation, and the shaded band below it is the coexistence region, where amplitude error is not scored.</figcaption>
+        </figure>
+
+        <h3>Range width</h3>
+        <p>Keeping one sample per unit of ρ and centering the window at ρ = 29, I widened the training range from 2 units to 10. Marginal reach did not grow with width. It fell from 1.20 at width 2 to 0.20 at width 8, then rose to 1.50 at width 10. Over the same sweep the absolute ceiling climbed steadily from 31.2 to 35.5.</p>
+        <p>My reading of the drop is that as the upper edge moves into more strongly chaotic territory, error grows faster and fewer outward steps clear the bar. I don't have a mechanism for the rise at width 10. Repeating that run with the lowest sample clamped to the Hopf point returned the same 1.50, so it is not an artifact of the grid.</p>
+
+        <h3>Sample density</h3>
+        <p>With the window fixed at ρ ∈ [26, 32], I increased the number of samples inside it from 2 to 21. From 3 samples on, reach sat at 0.30 for every count, with a degenerate band. The 2-sample case is higher, at 0.80, but that comes from the arrangement: with samples only at the two ends, the in-window reference point falls where the network interpolates poorly. Its valid prediction time drops to 2.34, against 7.6 elsewhere, which lowers the bar for outward steps. It isn't data starvation either. At 21 samples, each segment is still about 85 Lyapunov times long after washout.</p>
+
+        <figure class="wide">
+          <img src="/assets/img/fig3-range-density.png" width="1920" height="645" loading="lazy" alt="Two line plots. Left: marginal reach against training-range width falls from 1.2 to 0.2 then rises to 1.5, while absolute ceiling rises steadily from 31.2 to 35.5. Right: marginal reach against number of samples is 0.8 at two samples and flat at 0.3 from three samples to 21.">
+          <figcaption><strong>Figure 3.</strong> Extrapolation distance at fixed total data, 32 reservoirs each. (a) Against training-range width, centered at ρ = 29: marginal reach in red (left axis) and absolute ceiling in teal (right axis). At width 10 the lower edge dips below the Hopf point; the clamped repeat gives the same reach. (b) Against sample count, flat from three samples on. Grey numbers give the per-sample length in steps.</figcaption>
+        </figure>
+
+        <h3>Window position</h3>
+        <p>Last, I fixed the window at 4 units wide with 5 samples and slid it so its lower edge sat 0.26, 2.26, 4.26, and 6.26 above the Hopf point. By the strict measure, no window reached across the Hopf point: the depth at which the predicted regime still matched the truth was zero at every position.</p>
+        <p>Zero depth hides what the network did do. Every window placed the collapse at ρ = 24.10, 0.64 below the true Hopf point, and position made no difference at all. That value is not near the Hopf point at 24.74, where the fixed points become stable. It is near the coexistence onset at 24.06, where the chaotic attractor itself ends. A network that has learned the chaotic attractor follows it down until the attractor really does stop existing. A trajectory already on that attractor has no reason to leave at 24.74 just because another option opens up there. So the network is reporting the boundary of the object it was trained on, not the Lorenz system's bifurcation. That fits two known properties of trained reservoirs: their learned maps have their own bifurcation structure, with critical points near but not on the target system's, and attractor structure can come from the reservoir's own constraints.</p>
+
+        <figure class="narrow">
+          <img src="/assets/img/fig4-window-position.png" width="960" height="600" loading="lazy" alt="Predicted collapse point against distance of the window's lower edge above the Hopf point. All four points sit flat at rho 24.10, below the dashed Hopf line at 24.74 and just above the dash-dotted coexistence line at 24.06.">
+          <figcaption><strong>Figure 4.</strong> Predicted collapse against training-window position, 32 reservoirs each. The collapse sits at ρ = 24.10 for every lower-edge distance <var>d</var>: 0.64 below the true Hopf point (dashed, 24.74), at the coexistence onset (dash-dotted, 24.06). The strict across-Hopf depth, not plotted, is zero at every position.</figcaption>
+        </figure>
+
+        <h2>Conclusion</h2>
+        <p>On a fixed data budget, spend it on covering a wider range of ρ rather than filling the same range more densely.</p>
+        <p>The study has limits: one system, one architecture, one bifurcation. These measurements can't say whether the saturation holds for next-generation reservoir computing or for deep reservoirs.</p>
+
+        <h2>Reproducibility</h2>
+        <p>The pipeline is deterministic on a pinned Python stack, and every source of randomness traces back to one master seed, so a clean checkout rebuilds every figure bit for bit. The code, the result cells behind each figure, and instructions for rerunning everything are in the <a href="https://github.com/NDAR123909/reservoir-lorenz-regime-transitions">repository</a>. The animation above uses the trajectories from the repository's Figure 2 script, saved instead of plotted.</p>
+
+        <h2>Key references</h2>
+        <ol class="references">
+          <li>L.-W. Kong, H.-W. Fan, C. Grebogi, and Y.-C. Lai, <cite>Phys. Rev. Research</cite> 3, 013090 (2021).</li>
+          <li>J. Pathak, Z. Lu, B. R. Hunt, M. Girvan, and E. Ott, <cite>Chaos</cite> 27, 121102 (2017).</li>
+          <li>D. Sisodia and S. Jalan, <cite>Phys. Rev. E</cite> 110, 034211 (2024).</li>
+          <li>T. Kabayama, M. Komuro, K. Aihara, and K. Nakajima, <cite>Jpn. J. Ind. Appl. Math.</cite> 42, 1459–1473 (2025).</li>
+        </ol>
+        <p class="small">The full paper isn't posted while it's in preparation.</p>
+      </article>
+
+      <footer class="site-footer">
+        <p>© 2026 Noah Riego</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
